@@ -1,0 +1,10 @@
+[tracker]
+interval_seconds = 3600
+watchlist = "data/watchlist.csv"
+
+[alerts]
+enabled = true
+
+[scraper]
+request_delay_min = 1.5
+request_delay_max = 4.0

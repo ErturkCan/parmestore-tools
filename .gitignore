@@ -1,0 +1,6 @@
+data/prices.db
+gap_results.csv
+config/config.toml
+__pycache__/
+*.pyc
+.env

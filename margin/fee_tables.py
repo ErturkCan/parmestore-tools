@@ -1,5 +1,5 @@
-# Marketplace commission rates as of 2025
-# Sources: bol.com partner API docs, Amazon Seller Central DE
+# Illustrative rates for this calculator, not verified marketplace quotations.
+# Replace these assumptions with the rates that apply to your account and products.
 
 BOL_FEES = {
     "home_decor":      0.15,

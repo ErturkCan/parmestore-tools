@@ -16,8 +16,8 @@ def search_amazon_de(query: str) -> dict:
     try:
         resp = requests.get(search_url, headers=HEADERS, timeout=10)
         resp.raise_for_status()
-    except requests.RequestException:
-        return {"found": False, "price": None, "asin": None}
+    except requests.RequestException as exc:
+        return {"found": None, "price": None, "asin": None, "error": str(exc)}
 
     soup = BeautifulSoup(resp.text, "html.parser")
 

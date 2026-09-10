@@ -1,8 +1,8 @@
 import argparse
 import csv
-from bol_scraper import scrape_bol_category
-from amazon_scraper import search_amazon_de
-from scorer import score_gap
+from .bol_scraper import scrape_bol_category
+from .amazon_scraper import search_amazon_de
+from .scorer import score_gap
 
 # Known bol.com category URLs
 CATEGORY_URLS = {
@@ -30,6 +30,10 @@ def run(category: str, min_reviews: int, max_results: int, output_file: str):
         print(f"  Checking Amazon.de for: {p['title'][:50]}...")
         amazon = search_amazon_de(p["title"])
 
+        if amazon.get("found") is None:
+            print("  Amazon request failed; skipping this comparison.")
+            continue
+
         gap_score = score_gap(
             p["bol_reviews"], p["bol_price"],
             amazon["found"], amazon.get("price")
@@ -51,7 +55,9 @@ def run(category: str, min_reviews: int, max_results: int, output_file: str):
     results = results[:max_results]
 
     with open(output_file, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=results[0].keys())
+        writer = csv.DictWriter(f, fieldnames=["title", "bol_price", "bol_reviews", "bol_url",
+                                                  "amazon_de_found", "amazon_de_price",
+                                                  "amazon_asin", "gap_score"])
         writer.writeheader()
         writer.writerows(results)
 

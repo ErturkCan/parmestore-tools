@@ -1,6 +1,6 @@
 import argparse
-from fee_tables import BOL_FEES, AMAZON_DE_FEES, FULFILLMENT_COST
-from vat import calculate_vat, price_excl_vat
+from .fee_tables import BOL_FEES, AMAZON_DE_FEES, FULFILLMENT_COST
+from .vat import calculate_vat, price_excl_vat
 
 
 def calculate_margin(

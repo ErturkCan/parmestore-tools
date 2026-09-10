@@ -1,4 +1,4 @@
-from fee_tables import VAT_RATES
+from .fee_tables import VAT_RATES
 
 
 def calculate_vat(sale_price: float, country: str = "NL") -> float:

@@ -1,132 +1,40 @@
-# parmestore-tools
+# Parmestore tools
 
-Automation suite for [Parmestore International](https://linkedin.com/in/canetrk) — a KVK-registered China-Europe e-commerce company.
+Small Python tools for questions I dealt with through Parmestore: what is left after costs, how prices move, and which listings are worth looking into. Parmestore closed in November 2025; this repository is a collection of tools and experiments around that work.
 
-Tools for price tracking, margin calculation, and cross-platform product gap finding across bol.com and Amazon.de.
+## Start with the margin calculator
 
----
-
-## What this is
-
-Parmestore is my company. I source products directly from China and sell across European marketplaces. Managing pricing, margins, and product opportunities manually doesn't scale — so I built tools.
-
-This repo contains the automation scripts I actually use to run the business.
-
----
-
-## Tools
-
-### 1. Price Tracker (`tracker/`)
-
-Monitors competitor prices on bol.com and Amazon.de for a given product list. Logs price changes and alerts when a target product drops below a threshold.
+This command uses only the Python standard library:
 
 ```bash
-python tracker/run.py --products data/watchlist.csv --interval 3600
+python -m margin.calculate --wholesale 4.50 --shipping 1.20 --sale-price 18.99 --marketplace bol
 ```
 
-**What it does:**
-- Fetches current prices from bol.com and Amazon.de product pages
-- Logs to SQLite with timestamp
-- Outputs daily price change summary
-- Configurable alert threshold per product
+It separates VAT included in the sale price, marketplace commission, fulfilment, wholesale and shipping. The fee tables are illustrative assumptions, not current marketplace quotations or a complete tax model. Check and adjust `margin/fee_tables.py` before using the output for a business decision.
 
----
+## Price tracking and listing comparison
 
-### 2. Margin Calculator (`margin/`)
-
-Given a product's China wholesale price, shipping cost, and target marketplace, calculates landed cost, marketplace fees, VAT, and net margin.
+From the repository root, with Python 3.10 or later:
 
 ```bash
-python margin/calculate.py --wholesale 4.50 --shipping 1.20 --marketplace bol --sale-price 19.99
-```
-
-**Output:**
-```
-Product Cost:     €4.50
-Shipping:         €1.20
-Marketplace fee:  €3.00  (15%)
-VAT (21%):        €3.47
-─────────────────────────
-Total cost:       €8.17
-Sale price:       €19.99
-Net margin:       €11.82  (59.1%)
-```
-
-Supports: bol.com, Amazon.de, Amazon.nl fee structures.
-
----
-
-### 3. Product Gap Finder (`gap_finder/`)
-
-Cross-references top-selling products on bol.com against Amazon.de listings. Finds products with strong bol.com demand but weak or no Amazon.de presence — potential white space opportunities.
-
-```bash
-python gap_finder/scan.py --category "home-decor" --min-reviews 50 --max-results 100
-```
-
-**Output:** CSV with columns: product, bol_rank, bol_reviews, bol_price, amazon_de_present, amazon_de_price, gap_score
-
----
-
-## Setup
-
-```bash
-git clone https://github.com/ErturkCan/parmestore-tools
-cd parmestore-tools
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-cp config/config.example.toml config/config.toml
-# Edit config.toml with your settings
+python -m tracker.run --products data/watchlist.csv --interval 3600
+python -m gap_finder.scan --category kitchen --min-reviews 50 --max-results 20 --output gap_results.csv
 ```
 
-**Requirements:** Python 3.10+, requests, BeautifulSoup4, pandas, sqlite3, rich, toml
+Replace the sample watchlist with listings you want to check. The tracker stores observations in `data/prices.db` and prints threshold alerts. The scanner compares bol.com listings with the first Amazon.de search result and writes a ranked CSV.
 
----
+The HTML selectors can stop working when a site changes or blocks a request. A missing search result is not proof of a market gap, and the first result may be a different product. Scores are a rough review order, not validated demand estimates. These commands make live web requests; the tests below do not.
 
-## Project Structure
+## Layout
 
+- `margin/`: cost calculation and example fee/VAT tables.
+- `tracker/`: fetchers, SQLite history and console alerts.
+- `gap_finder/`: listing search and a simple scoring rule.
+- `config/config.example.toml`: example settings; the CLI currently takes arguments directly and does not load this file.
+
+```bash
+python -m unittest discover -s tests -v
 ```
-parmestore-tools/
-├── tracker/
-│   ├── run.py              # Main price tracking loop
-│   ├── fetcher.py          # bol.com + Amazon.de scrapers
-│   ├── storage.py          # SQLite logging
-│   └── alerts.py           # Threshold alerting
-├── margin/
-│   ├── calculate.py        # CLI margin calculator
-│   ├── fee_tables.py       # Marketplace fee structures
-│   └── vat.py              # VAT calculation by country
-├── gap_finder/
-│   ├── scan.py             # Main gap finder script
-│   ├── bol_scraper.py      # bol.com category scraper
-│   ├── amazon_scraper.py   # Amazon.de lookup
-│   └── scorer.py           # Gap scoring logic
-├── data/
-│   ├── watchlist.csv       # Example product watchlist
-│   └── fee_structures/     # Fee tables per marketplace
-├── config/
-│   └── config.example.toml
-├── notebooks/
-│   └── margin_analysis.ipynb  # Historical margin analysis
-├── requirements.txt
-└── README.md
-```
-
----
-
-## Context
-
-**Parmestore International** is a KVK-registered e-commerce company (Netherlands) I founded before starting university. We source home decor, kitchen accessories, and textiles directly from Chinese suppliers and sell on European marketplaces. Currently generating €550+/month, expanding to bol.com and Amazon.de. Attending Canton Fair Guangzhou October–November 2026 for direct supplier sourcing.
-
-These tools exist because running arbitrage and sourcing decisions manually at scale is not feasible. The automation saves roughly 3–4 hours per week and reduces pricing errors.
-
----
-
-## Notes on scraping
-
-The scrapers respect rate limits and use randomized delays. They are for personal/business use on publicly visible prices — not for resale or bulk data extraction. If you use this, be responsible.
-
----
-
-## License
-
-MIT

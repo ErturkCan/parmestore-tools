@@ -2,9 +2,9 @@ import argparse
 import csv
 import time
 import random
-from fetcher import fetch_bol_price, fetch_amazon_de_price
-from storage import init_db, save_price
-from alerts import check_threshold
+from .fetcher import fetch_bol_price, fetch_amazon_de_price
+from .storage import init_db, save_price
+from .alerts import check_threshold
 
 
 def load_watchlist(path: str) -> list[dict]:
@@ -38,7 +38,7 @@ def run(watchlist_path: str, interval_seconds: int):
 
                 save_price(record)
                 price_str = f"€{record['price']:.2f}" if record["price"] else "N/A"
-                print(f"[{platform}] {record['title'][:50]}... → {price_str}")
+                print(f"[{platform}] {(record['title'] or url)[:50]}... → {price_str}")
 
                 if threshold > 0:
                     check_threshold(record["price"], threshold, record["title"])

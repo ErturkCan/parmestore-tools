@@ -1,7 +1,7 @@
 def score_gap(bol_reviews: int, bol_price: float, amazon_found: bool, amazon_price: float) -> float:
     score = 0.0
 
-    # More bol reviews = stronger proven demand
+    # Reviews are a rough signal; they do not establish current demand.
     if bol_reviews >= 200:
         score += 40
     elif bol_reviews >= 50:
@@ -9,7 +9,7 @@ def score_gap(bol_reviews: int, bol_price: float, amazon_found: bool, amazon_pri
     elif bol_reviews >= 10:
         score += 10
 
-    # Not on Amazon DE = clear gap
+    # No parsed result is a lead for manual checking, not proof of absence.
     if not amazon_found:
         score += 40
     elif amazon_price and bol_price:
